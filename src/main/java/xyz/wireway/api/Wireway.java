@@ -7,12 +7,12 @@ import javax.print.DocFlavor;
 
 public class Wireway {
 
-    public static ServerBuilder createServer(){
+    public static ServerBuilder serverBuilder(){
         //TODO
         return null;
     }
 
-    public static ClientBuilder createClient(){
+    public static ClientBuilder clientBuilder(){
         //todo
         return null;
     }
