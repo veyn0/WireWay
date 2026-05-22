@@ -2,8 +2,6 @@ package xyz.wireway.api.packet;
 
 public interface PacketReceiver {
 
-    public void onPacketReceive(Packet packet);
-
-
+    public Packet onPacketReceive(Packet packet);
 
 }
