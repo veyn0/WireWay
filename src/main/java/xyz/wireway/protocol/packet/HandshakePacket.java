@@ -3,7 +3,7 @@ package xyz.wireway.protocol.packet;
 import xyz.wireway.protocol.Packet;
 import xyz.wireway.protocol.PacketId;
 
-@PacketId(packetId = 1)
+@PacketId(packetId = "xyz.wireway.packet.system.handshake")
 public class HandshakePacket implements Packet {
     @Override
     public Packet decode(byte[] data) {
