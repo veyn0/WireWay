@@ -24,4 +24,9 @@ public class VarInt {
         throw new IllegalStateException("VarInt too long");
     }
 
+    public static int sizeOf(int value) {
+        int significantBits = 32 - Integer.numberOfLeadingZeros(value);
+        return Math.max(1, (significantBits + 6) / 7);
+    }
+
 }

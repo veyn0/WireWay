@@ -19,4 +19,5 @@ public class Protocol {
     public Map<Long, Class<? extends Packet>> getNamedPacketRegistry() {
         return namedPacketRegistry;
     }
+
 }
