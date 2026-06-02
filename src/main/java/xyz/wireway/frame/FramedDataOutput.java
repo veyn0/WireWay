@@ -53,7 +53,7 @@ public class FramedDataOutput {
         int remainingSize = maxFrameLength;
         boolean progressed = true;
 
-        while (progressed && remainingSize > 0 && !fragments.isEmpty()){
+        while ((progressed && remainingSize > 0 )|| fragments.isEmpty()){
             progressed = false;
             int passSize = dataSources.size();
 
@@ -64,23 +64,26 @@ public class FramedDataOutput {
                 int maxSize = Math.min(maxFrameFragmentLength, remainingSize - estimatedMaxFragmentHeaderSize);
 
                 if(maxSize > 0 && dataSource.availableBytes()>0){
+                    int dataId = dataSourceInfo.getId();
+                    byte flags = computeFlags(dataSourceInfo);
                     int chunkSize = Math.min(dataSource.availableBytes(), maxSize);
                     ByteBuffer chunk = ByteBuffer.allocateDirect(chunkSize);
-
-
                     dataSource.write(chunk, chunkSize);
+                    fragments.add(new FrameFragment(dataId, flags, chunk));
 
-
+                    progressed = true;
 
                 }
 
-
+                if(dataSource.isExhausted()){
+                    dataSourceIdAllocator.release(dataSourceInfo.getId());
+                }
+                else {
+                    dataSources.addLast(dataSourceInfo);
+                }
             }
-
-
-
         }
-
+        return new Frame(fragments);
     }
 
 

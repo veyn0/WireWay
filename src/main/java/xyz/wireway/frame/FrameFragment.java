@@ -13,18 +13,18 @@ public class FrameFragment {
     */
 
     private final int dataId;
-    private final byte flag;
+    private final byte flags;
     private final ByteBuffer data;
 
-    public FrameFragment(int dataId, byte flag, ByteBuffer data) {
+    public FrameFragment(int dataId, byte flags, ByteBuffer data) {
         this.dataId = dataId;
-        this.flag = flag;
+        this.flags = flags;
         this.data = data;
     }
 
     public void write(ByteBuffer buffer){
         VarInt.writeVarInt(buffer, dataId);
-        buffer.put(flag);
+        buffer.put(flags);
         VarInt.writeVarInt(buffer, data.remaining());
         buffer.put(data.duplicate());
     }
