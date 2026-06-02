@@ -1,7 +1,9 @@
 package xyz.wireway.transport;
 
+import java.nio.ByteBuffer;
+
 public interface TransportListener {
 
-    public void onReceive(byte[] content);
+    public void onReceive(ByteBuffer data);
 
 }

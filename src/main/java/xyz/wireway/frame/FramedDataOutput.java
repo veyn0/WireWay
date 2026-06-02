@@ -2,14 +2,13 @@ package xyz.wireway.frame;
 
 import xyz.wireway.transport.Transport;
 import xyz.wireway.util.IdAllocator;
+import xyz.wireway.util.VarInt;
 
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class FramedDataOutput {
-
-    //private Map<Integer, DataSource> dataSources = new ConcurrentHashMap<>();
 
     private final Deque<DataSourceInfo> dataSources = new ArrayDeque<>();
 
@@ -43,9 +42,15 @@ public class FramedDataOutput {
         dataSourceIdAllocator.release(dataSourceInfo.getId());
     }
 
-    private void outputLoop(){
+    private void sendFrame(){
 
+        //TODO: find more efficient way to create final bytebuffer of Frame.
 
+        Frame currentFrame = buildNextFrame();
+        int length= currentFrame.length() + VarInt.sizeOf(currentFrame.length());
+        ByteBuffer data = ByteBuffer.allocateDirect(length);
+        currentFrame.write(data);
+        transport.send(data);
     }
 
     private Frame buildNextFrame(){

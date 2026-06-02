@@ -37,4 +37,14 @@ public class Frame {
         return new Frame(frameFragments);
     }
 
+    public int length(){
+        int result = 0;
+            for(FrameFragment f : fragments){
+                int len = f.length();
+                result += len;
+                result += VarInt.sizeOf(len);
+            }
+        return result;
+    }
+
 }

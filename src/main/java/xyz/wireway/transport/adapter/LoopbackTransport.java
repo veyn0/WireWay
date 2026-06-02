@@ -4,6 +4,7 @@ import xyz.wireway.transport.ConnectionState;
 import xyz.wireway.transport.Transport;
 import xyz.wireway.transport.TransportListener;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,10 +23,10 @@ public class LoopbackTransport implements Transport {
     }
 
     @Override
-    public void send(byte[] content) {
+    public void send(ByteBuffer data) {
         if(connectionState==ConnectionState.CLOSED) throw new RuntimeException("Cannot send to already closed TransportChannel");
         for(TransportListener l : transportListeners){
-            l.onReceive(content.clone());
+            l.onReceive(data.duplicate());
         }
     }
 

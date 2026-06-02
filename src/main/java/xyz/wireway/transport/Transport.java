@@ -1,8 +1,10 @@
 package xyz.wireway.transport;
 
+import java.nio.ByteBuffer;
+
 public interface Transport {
 
-    public void send(byte[] content);
+    public void send(ByteBuffer data);
 
     public void addListener(TransportListener listener);
 
