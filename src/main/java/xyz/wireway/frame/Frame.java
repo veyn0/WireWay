@@ -1,7 +1,10 @@
 package xyz.wireway.frame;
 
+import xyz.wireway.Main;
+import xyz.wireway.util.ComposedBuffer;
 import xyz.wireway.util.VarInt;
 
+import java.io.FilterOutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +26,14 @@ public class Frame {
         }
     }
 
-    public static Frame read(ByteBuffer buffer, int length){
+
+    public static Frame read(ComposedBuffer composedBuffer){
+        int len = VarInt.readVarInt(composedBuffer.peek(5));
+        return read(composedBuffer.get(len + VarInt.sizeOf(len)));
+    }
+
+    public static Frame read(ByteBuffer buffer){
+        int length = VarInt.readVarInt(buffer);
         if (buffer.remaining() < length) {
             throw new IllegalArgumentException("buffer size cannot be less than Frame length");
         }
@@ -42,9 +52,14 @@ public class Frame {
             for(FrameFragment f : fragments){
                 int len = f.length();
                 result += len;
-                result += VarInt.sizeOf(len);
             }
-        return result;
+        return result + VarInt.sizeOf(result);
+    }
+
+    public static boolean canRead(ComposedBuffer composedBuffer){
+        int totalLength = composedBuffer.remaining();
+        int frameLength = VarInt.readVarInt(composedBuffer.peek(5));
+        return totalLength >= (frameLength + VarInt.sizeOf(frameLength));
     }
 
 }

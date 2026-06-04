@@ -1,4 +1,4 @@
-package xyz.wireway.frame;
+package xyz.wireway.frame.datasource;
 
 public class DataSourceInfo {
 

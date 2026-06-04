@@ -1,5 +1,6 @@
 package xyz.wireway.frame;
 
+import xyz.wireway.Main;
 import xyz.wireway.util.VarInt;
 
 import java.nio.ByteBuffer;
