@@ -1,5 +1,6 @@
 package xyz.wireway.util;
 
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
 public class VarInt {
@@ -27,6 +28,26 @@ public class VarInt {
     public static int sizeOf(int value) {
         int significantBits = 32 - Integer.numberOfLeadingZeros(value);
         return Math.max(1, (significantBits + 6) / 7);
+    }
+
+    public static int readVarIntSafe(ByteBuffer buf) {
+        int startPosition = buf.position();
+        int result = 0;
+
+        for (int shift = 0; shift < 32; shift += 7) {
+            if (!buf.hasRemaining()) {
+                buf.position(startPosition);
+                throw new BufferUnderflowException();
+            }
+            byte b = buf.get();
+            result |= (b & 0x7F) << shift;
+            if ((b & 0x80) == 0) {
+                return result;
+            }
+        }
+
+        buf.position(startPosition);
+        throw new IllegalStateException("VarInt too long");
     }
 
 }

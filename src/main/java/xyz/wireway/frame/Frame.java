@@ -5,6 +5,7 @@ import xyz.wireway.util.ComposedBuffer;
 import xyz.wireway.util.VarInt;
 
 import java.io.FilterOutputStream;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +26,6 @@ public class Frame {
             f.write(buffer);
         }
     }
-
 
     public static Frame read(ComposedBuffer composedBuffer){
         int len = VarInt.readVarInt(composedBuffer.peek(5));
@@ -58,8 +58,15 @@ public class Frame {
 
     public static boolean canRead(ComposedBuffer composedBuffer){
         int totalLength = composedBuffer.remaining();
-        int frameLength = VarInt.readVarInt(composedBuffer.peek(5));
-        return totalLength >= (frameLength + VarInt.sizeOf(frameLength));
+        try {
+            int frameLength = VarInt.readVarIntSafe(composedBuffer.peek(5));
+            return totalLength >= (frameLength + VarInt.sizeOf(frameLength));
+        } catch (BufferOverflowException e){
+            return false;
+        }
     }
 
+    public List<FrameFragment> getFragments() {
+        return fragments;
+    }
 }

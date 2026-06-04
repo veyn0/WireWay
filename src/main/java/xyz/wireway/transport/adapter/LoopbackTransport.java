@@ -26,7 +26,7 @@ public class LoopbackTransport implements Transport {
     public void send(ByteBuffer data) {
         if(connectionState==ConnectionState.CLOSED) throw new RuntimeException("Cannot send to already closed TransportChannel");
         for(TransportListener l : transportListeners){
-            l.onReceive(data.duplicate().flip());
+            l.onReceive(data.duplicate());
         }
     }
 

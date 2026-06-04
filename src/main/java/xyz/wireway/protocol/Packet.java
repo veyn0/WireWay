@@ -1,9 +1,11 @@
 package xyz.wireway.protocol;
 
+import java.nio.ByteBuffer;
+
 public interface Packet {
 
-    public Packet decode(byte[] data);
+    Packet decode(ByteBuffer buffer);
 
-    public byte[] encode(Packet p);
+    ByteBuffer encode(Packet p);
 
 }

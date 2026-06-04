@@ -4,7 +4,6 @@ import java.nio.ByteBuffer;
 
 public class ByteArrayDatasource implements DataSource{
 
-
     private int index = 0;
     private final byte[] data;
 
@@ -18,7 +17,7 @@ public class ByteArrayDatasource implements DataSource{
     }
 
     @Override
-    public void write(ByteBuffer buffer, int length) {
+    public void read(ByteBuffer buffer, int length) {
         buffer.put(data, index, length);
         index += length;
     }

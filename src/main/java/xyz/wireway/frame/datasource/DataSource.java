@@ -4,14 +4,10 @@ import java.nio.ByteBuffer;
 
 public interface DataSource {
 
-    public int availableBytes();
+    int availableBytes();
 
+    void read(ByteBuffer buffer, int length);
 
-    /**
-    @param length has to be lower or equals to availableBytes().
-     */
-    public void write(ByteBuffer buffer, int length);
-
-    public boolean isExhausted();
+    boolean isExhausted();
 
 }

@@ -3,18 +3,18 @@ package xyz.wireway.protocol.packet;
 import xyz.wireway.protocol.Packet;
 import xyz.wireway.protocol.PacketId;
 
+import java.nio.ByteBuffer;
+
 @PacketId(packetId = "xyz.wireway.packet.system.handshake")
 public class HandshakePacket implements Packet {
 
-
-
     @Override
-    public Packet decode(byte[] data) {
+    public Packet decode(ByteBuffer buffer) {
         return null;
     }
 
     @Override
-    public byte[] encode(Packet p) {
-        return new byte[0];
+    public ByteBuffer encode(Packet p) {
+        return null;
     }
 }

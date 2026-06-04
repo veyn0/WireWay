@@ -9,8 +9,8 @@ public class FrameFragment {
 
     /*
         [dataID : VarInt] [flag : byte] [dataLength : VarInt] [Data : bytes]
-        flag bit 7 = isStart
-        flag bit 8 = isEnd
+        flag bit 7 / 0x02 = isStart
+        flag bit 8 / 0x01 = isEnd
     */
 
     private final int dataId;
@@ -41,6 +41,32 @@ public class FrameFragment {
 
     public int length(){
         return VarInt.sizeOf(dataId) + 1 + VarInt.sizeOf(data.remaining())+ data.remaining();
+    }
+
+    public ByteBuffer getData() {
+        return data;
+    }
+
+    public int getDataId() {
+        return dataId;
+    }
+
+    public byte getFlags() {
+        return flags;
+    }
+
+    public boolean isStart(){
+        return (flags & 0b00000010) == 0b00000010;
+    }
+
+    public boolean isEnd(){
+        return (flags & 0b00000001) == 0b00000001;
+    }
+
+    public static byte encodeFlags(boolean isStart, boolean isEnd){
+        byte start = (byte) (isStart ? 0b00000010 : 0b00000000);
+        byte end = (byte) (isEnd ? 0b00000001 : 0b00000000);
+        return (byte) (start | end);
     }
 
 }

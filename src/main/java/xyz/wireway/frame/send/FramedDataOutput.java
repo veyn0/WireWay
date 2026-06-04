@@ -1,13 +1,11 @@
 package xyz.wireway.frame.send;
 
-import xyz.wireway.Main;
 import xyz.wireway.frame.Frame;
 import xyz.wireway.frame.FrameFragment;
 import xyz.wireway.frame.datasource.DataSource;
 import xyz.wireway.frame.datasource.DataSourceInfo;
 import xyz.wireway.transport.Transport;
 import xyz.wireway.util.IdAllocator;
-import xyz.wireway.util.VarInt;
 
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -53,6 +51,7 @@ public class FramedDataOutput {
         int length= currentFrame.length();
         ByteBuffer data = ByteBuffer.allocateDirect(length);
         currentFrame.write(data);
+        data.flip();
         transport.send(data);
     }
 
@@ -71,7 +70,7 @@ public class FramedDataOutput {
                     int dataId = dataSourceInfo.getId();
                     int chunkSize = Math.min(dataSource.availableBytes(), maxSize);
                     ByteBuffer chunk = ByteBuffer.allocateDirect(chunkSize);
-                    dataSource.write(chunk, chunkSize);
+                    dataSource.read(chunk, chunkSize);
                     byte flags = computeFlags(dataSourceInfo);
                     FrameFragment result = new FrameFragment(dataId, flags, chunk.flip());
                     fragments.add(result);

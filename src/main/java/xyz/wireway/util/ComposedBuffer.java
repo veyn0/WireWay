@@ -1,58 +1,77 @@
 package xyz.wireway.util;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayDeque;
 
-public class ComposedBuffer {
+public final class ComposedBuffer {
 
-    private final ArrayDeque<ByteBuffer> buffers = new ArrayDeque<>();
-    private int totalBytes = 0;
+    private byte[] data;
+    private int readIndex;
+    private int writeIndex;
 
-    public void add(ByteBuffer buffer) {
-        buffers.add(buffer.slice());
-        totalBytes += buffer.remaining();
+    public ComposedBuffer() {
+        this(1024);
     }
 
-    public ByteBuffer get() {
-        ByteBuffer result = ByteBuffer.allocate(totalBytes);
-        while (!buffers.isEmpty()) {
-            result.put(buffers.poll());
-        }
-        totalBytes = 0;
-        result.flip();
-        return result;
-    }
-
-    public ByteBuffer get(int length) {
-        ByteBuffer result = ByteBuffer.allocate(length);
-        int totalLength = 0;
-        while (totalLength < length && !buffers.isEmpty()) {
-            ByteBuffer b = buffers.peek();
-            int currentLength = Math.min(b.remaining(), length - totalLength);
-            result.put(b.slice(b.position(), currentLength));
-            b.position(b.position() + currentLength);
-            if (!b.hasRemaining()) buffers.poll();
-            totalLength += currentLength;
-        }
-        totalBytes = Math.max(totalBytes - totalLength, 0);
-        result.flip();
-        return result;
-    }
-
-    public ByteBuffer peek(int length) {
-        ByteBuffer result = ByteBuffer.allocate(length);
-        int totalLength = 0;
-        for (ByteBuffer buf : buffers) {
-            if (totalLength >= length) break;
-            int currentLength = Math.min(buf.remaining(), length - totalLength);
-            result.put(buf.slice(buf.position(), currentLength));
-            totalLength += currentLength;
-        }
-        result.flip();
-        return result;
+    public ComposedBuffer(int initialCapacity) {
+        this.data = new byte[Math.max(initialCapacity, 16)];
     }
 
     public int remaining() {
-        return totalBytes;
+        return writeIndex - readIndex;
+    }
+
+    public void add(ByteBuffer source) {
+        int needed = source.remaining();
+        if (needed == 0) return;
+        if (readIndex == writeIndex) {
+            readIndex = 0;
+            writeIndex = 0;
+        }
+        ensureWritable(needed);
+        source.get(data, writeIndex, needed);
+        writeIndex += needed;
+    }
+
+    public ByteBuffer peek(int length) {
+        checkAvailable(length);
+        return ByteBuffer.wrap(data, readIndex, length).slice().asReadOnlyBuffer();
+    }
+
+    public ByteBuffer get(int length) {
+        checkAvailable(length);
+        ByteBuffer view = ByteBuffer.wrap(data, readIndex, length).slice().asReadOnlyBuffer();
+        readIndex += length;
+        return view;
+    }
+
+    public ByteBuffer get() {
+        return get(remaining());
+    }
+
+    private void checkAvailable(int length) {
+        if (length < 0) {
+            throw new IllegalArgumentException("length < 0: " + length);
+        }
+        if (length > remaining()) {
+            throw new IllegalArgumentException(
+                    "Not enough bytes: requested " + length + ", have " + remaining());
+        }
+    }
+
+    private void ensureWritable(int additional) {
+        if (writeIndex + additional <= data.length) {
+            return;
+        }
+        int unread = writeIndex - readIndex;
+        if (unread + additional <= data.length) {
+            System.arraycopy(data, readIndex, data, 0, unread);
+        } else {
+            int newCapacity = Math.max(data.length * 2, unread + additional);
+            byte[] newData = new byte[newCapacity];
+            System.arraycopy(data, readIndex, newData, 0, unread);
+            data = newData;
+        }
+        readIndex = 0;
+        writeIndex = unread;
     }
 }
