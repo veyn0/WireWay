@@ -13,7 +13,13 @@ public class FramedDataInput implements TransportListener {
 
     private ComposedBuffer composedBuffer = new ComposedBuffer();
 
+    private final ReceiverRegistry receiverRegistry;
+
     private Map<Integer, DataReceiver> dataReceivers = new ConcurrentHashMap<>();
+
+    public FramedDataInput(ReceiverRegistry receiverRegistry) {
+        this.receiverRegistry = receiverRegistry;
+    }
 
     @Override
     public void onReceive(ByteBuffer data) {

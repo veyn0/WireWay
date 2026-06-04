@@ -2,14 +2,10 @@ package xyz.wireway.frame.receive;
 
 import java.nio.ByteBuffer;
 
-public class DataReceiver {
+public interface DataReceiver {
 
-    public void onReceive(ByteBuffer data){
+    void onReceive(ByteBuffer data);
 
-    };
-
-    public void close(){
-
-    };
+    void close();
 
 }
