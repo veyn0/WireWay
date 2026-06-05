@@ -1,6 +1,7 @@
 package xyz.wireway.util;
 
 
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -22,5 +23,31 @@ public class ProtocolUtils {
         byte[] digest = sha.digest(name.getBytes(StandardCharsets.UTF_8));
         return ByteBuffer.wrap(digest).getLong();
     }
+
+
+    public static boolean canRead(ByteBuffer byteBuffer){
+        byteBuffer = byteBuffer.duplicate();
+        int totalLength = byteBuffer.remaining();
+        if(totalLength==0) return false;
+        try {
+            int frameLength = VarInt.readVarIntSafe(byteBuffer);
+            return totalLength >= (frameLength + VarInt.sizeOf(frameLength));
+        } catch (BufferOverflowException e){
+            return false;
+        }
+    }
+
+    public static boolean canRead(ComposedBuffer composedBuffer){
+        int totalLength = composedBuffer.remaining();
+        if(totalLength==0) return false;
+        int peekLength = Math.max(totalLength, 5);
+        try {
+            int frameLength = VarInt.readVarIntSafe(composedBuffer.peek(peekLength));
+            return totalLength >= (frameLength + VarInt.sizeOf(frameLength));
+        } catch (BufferOverflowException e){
+            return false;
+        }
+    }
+
 
 }

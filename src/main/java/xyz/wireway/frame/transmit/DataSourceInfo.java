@@ -1,4 +1,6 @@
-package xyz.wireway.frame.datasource;
+package xyz.wireway.frame.transmit;
+
+import xyz.wireway.frame.datasource.DataSource;
 
 public class DataSourceInfo {
 

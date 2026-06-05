@@ -1,4 +1,4 @@
-package xyz.wireway.protocol;
+package xyz.wireway.frame.datasource;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,6 +7,8 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface PacketId {
-    String packetId();
+public @interface DataSourceId {
+
+    int datasourceId();
+
 }

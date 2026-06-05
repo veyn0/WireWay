@@ -56,16 +56,6 @@ public class Frame {
         return result + VarInt.sizeOf(result);
     }
 
-    public static boolean canRead(ComposedBuffer composedBuffer){
-        int totalLength = composedBuffer.remaining();
-        try {
-            int frameLength = VarInt.readVarIntSafe(composedBuffer.peek(5));
-            return totalLength >= (frameLength + VarInt.sizeOf(frameLength));
-        } catch (BufferOverflowException e){
-            return false;
-        }
-    }
-
     public List<FrameFragment> getFragments() {
         return fragments;
     }

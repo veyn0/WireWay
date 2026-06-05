@@ -1,11 +1,12 @@
-package xyz.wireway.frame.send;
+package xyz.wireway.frame.transmit;
 
+import xyz.wireway.frame.datasource.DataSourceRegistry;
 import xyz.wireway.frame.Frame;
 import xyz.wireway.frame.FrameFragment;
 import xyz.wireway.frame.datasource.DataSource;
-import xyz.wireway.frame.datasource.DataSourceInfo;
 import xyz.wireway.transport.Transport;
 import xyz.wireway.util.IdAllocator;
+import xyz.wireway.util.VarInt;
 
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -18,21 +19,24 @@ public class FramedDataOutput {
 
     private final Transport transport;
 
-    private static final int estimatedMaxFragmentHeaderSize = 11; // 5 + 1 + 5
+    private final DataSourceRegistry dataSourceRegistry;
+
+    private static final int estimatedMaxFragmentHeaderSize = 16; // 5 + 1 + 5 + 5 (in case of it being the first fragment currently the datasourceid has to be sent fully within the first transmitted fragment.)
 
     private final int maxFrameFragmentLength;
 
     private final int maxFrameLength;
 
-    public FramedDataOutput(Transport transport, int maxFrameFragmentLength, int maxFrameLength) {
-        if(maxFrameFragmentLength<1) throw new IllegalArgumentException("maxFrameFragmentLength must be at least 1");
-        if(maxFrameLength<12) throw new IllegalArgumentException("maxFrameLength must be at least 12");
+    public FramedDataOutput(Transport transport, DataSourceRegistry dataSourceRegistry, int maxFrameFragmentLength, int maxFrameLength) {
+        if(maxFrameFragmentLength<16) throw new IllegalArgumentException("maxFrameFragmentLength must be at least 8");
+        if(maxFrameLength<32) throw new IllegalArgumentException("maxFrameLength must be at least 12");
         if(maxFrameLength<(maxFrameFragmentLength+estimatedMaxFragmentHeaderSize)) throw new IllegalArgumentException("maxFrameLength cannot be less than 11 + fragmentlength");
         if(transport==null) throw new IllegalArgumentException("Transport cannot be null");
         this.maxFrameFragmentLength = maxFrameFragmentLength;
         this.maxFrameLength = maxFrameLength;
         this.dataSourceIdAllocator = new IdAllocator();
         this.transport = transport;
+        this.dataSourceRegistry = dataSourceRegistry;
     }
 
     public void addDataSource(DataSource dataSource){
@@ -68,9 +72,18 @@ public class FramedDataOutput {
                 int maxSize = Math.min(maxFrameFragmentLength, remainingSize - estimatedMaxFragmentHeaderSize);
                 if(maxSize > 0 && dataSource.availableBytes()>0){
                     int dataId = dataSourceInfo.getId();
-                    int chunkSize = Math.min(dataSource.availableBytes(), maxSize);
-                    ByteBuffer chunk = ByteBuffer.allocateDirect(chunkSize);
-                    dataSource.read(chunk, chunkSize);
+                    int chunkSizeRemaining = Math.min(dataSource.availableBytes(), maxSize);
+                    ByteBuffer chunk = ByteBuffer.allocateDirect(chunkSizeRemaining);
+
+                    // the first bytes of the transmition are reserved for the dataSourceId.
+                    // currently the dataSourceId has to be fully in the first fragment.
+                    if(!dataSourceInfo.isStartedSending()){
+                        int dataSourceId = dataSourceRegistry.getDataSourceId(dataSource);
+                        VarInt.writeVarInt(chunk, dataSourceId);
+                        chunkSizeRemaining -= VarInt.sizeOf(dataSourceId);
+                    }
+
+                    dataSource.read(chunk, chunkSizeRemaining);
                     byte flags = computeFlags(dataSourceInfo);
                     FrameFragment result = new FrameFragment(dataId, flags, chunk.flip());
                     fragments.add(result);
