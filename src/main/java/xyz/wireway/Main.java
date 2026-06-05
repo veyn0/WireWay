@@ -6,7 +6,6 @@ import xyz.wireway.frame.datasource.DataSourceRegistry;
 import xyz.wireway.frame.datasource.debug.DebugStringDataSource;
 import xyz.wireway.frame.transmit.FramedDataInput;
 import xyz.wireway.frame.transmit.FramedDataOutput;
-import xyz.wireway.service.DataController;
 import xyz.wireway.transport.Transport;
 import xyz.wireway.transport.adapter.LoopbackTransport;
 import xyz.wireway.transport.listener.DebugtransportListener;
@@ -18,7 +17,7 @@ public class Main {
 
     public static void main(String[] args) {
         Transport t = LoopbackTransport.connect();
-        DataSourceRegistry dataSourceRegistry = new DataSourceRegistry(new DataController());
+        DataSourceRegistry dataSourceRegistry = new DataSourceRegistry();
 
         dataSourceRegistry.registerDataSource(DebugByteArrayDatasource.class);
         dataSourceRegistry.registerDataSource(DebugStringDataSource.class);

@@ -3,7 +3,7 @@ package xyz.wireway.frame.datasource.debug;
 import xyz.wireway.Main;
 import xyz.wireway.frame.datasource.DataSource;
 import xyz.wireway.frame.datasource.DataSourceId;
-import xyz.wireway.service.DataController;
+import xyz.wireway.frame.datasource.Provider;
 import xyz.wireway.util.ComposedBuffer;
 
 import java.nio.ByteBuffer;
@@ -51,7 +51,8 @@ public class DebugStringDataSource implements DataSource {
     }
 
     @Override
-    public void inject(DataController dataController) {
+    public void inject(Provider provider) {
 
     }
+
 }

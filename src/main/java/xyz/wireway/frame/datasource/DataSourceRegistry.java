@@ -1,6 +1,8 @@
 package xyz.wireway.frame.datasource;
 
-import xyz.wireway.service.DataController;
+import xyz.wireway.frame.datasource.debug.DebugByteArrayDatasource;
+import xyz.wireway.frame.datasource.debug.DebugStringDataSource;
+import xyz.wireway.service.WireWay;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,10 +14,13 @@ public class DataSourceRegistry {
 
     private final Map<Integer, Supplier<DataSource>> incomingSourcesRegistry = new ConcurrentHashMap<>();
 
-    private DataController dataController;
+    private Provider provider;
 
-    public DataSourceRegistry(DataController dataController) {
-        this.dataController = dataController;
+    public DataSourceRegistry() {
+    }
+
+    public void setProvider(Provider provider) {
+        this.provider = provider;
     }
 
     public void registerDataSource(Class<? extends  DataSource> dataSource){
@@ -42,9 +47,16 @@ public class DataSourceRegistry {
         if (supplier == null) throw new IllegalArgumentException("DataSource id " + id + " not registered");
 
         DataSource dataSource = supplier.get();
-        dataSource.inject(dataController);
+        dataSource.inject(provider);
 
         return dataSource;
     }
 
+    public static DataSourceRegistry createDefault(){
+        DataSourceRegistry result = new DataSourceRegistry();
+        result.registerDataSource(SequentialPacketDataSource.class);
+        result.registerDataSource(DebugStringDataSource.class);
+        result.registerDataSource(DebugByteArrayDatasource.class);
+        return result;
+    }
 }

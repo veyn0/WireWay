@@ -56,6 +56,7 @@ public class FramedDataOutput {
         ByteBuffer data = ByteBuffer.allocateDirect(length);
         currentFrame.write(data);
         data.flip();
+        // TODO: check for transport connectionstate
         transport.send(data);
     }
 

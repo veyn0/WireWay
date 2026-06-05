@@ -19,18 +19,12 @@ public class FramedDataInput implements TransportListener {
 
     private ComposedBuffer composedBuffer = new ComposedBuffer();
 
-    private List<IncomingDataSourceListener> incomingDataSourceListeners = new ArrayList<>();
-
     private final DataSourceRegistry dataSourceRegistry;
 
     private Map<Integer, DataSource> dataSourcesByDataId = new ConcurrentHashMap<>();
 
     public FramedDataInput(DataSourceRegistry dataSourceRegistry) {
         this.dataSourceRegistry = dataSourceRegistry;
-    }
-
-    public void addIncomingDataSourceListener(IncomingDataSourceListener listener){
-        incomingDataSourceListeners.add(listener);
     }
 
     @Override
