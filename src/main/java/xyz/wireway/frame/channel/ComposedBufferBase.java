@@ -1,4 +1,4 @@
-package xyz.wireway.frame.datasource;
+package xyz.wireway.frame.channel;
 
 import xyz.wireway.util.ComposedBuffer;
 
@@ -7,8 +7,6 @@ import java.nio.ByteBuffer;
 public abstract class ComposedBufferBase {
 
     protected boolean open = true;
-
-    protected Provider provider;
 
     protected ComposedBuffer composedBuffer = new ComposedBuffer();
 
@@ -33,10 +31,6 @@ public abstract class ComposedBufferBase {
     public void close(){
         open = false;
         postClose();
-    }
-
-    public void inject(Provider dataController){
-        this.provider = dataController;
     }
 
     protected abstract void postClose();

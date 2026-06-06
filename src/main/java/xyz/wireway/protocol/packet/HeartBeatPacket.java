@@ -29,11 +29,9 @@ public class HeartBeatPacket implements Packet {
     }
 
     @Override
-    public Packet decode(ByteBuffer buffer) {
-        HeartBeatPacket packet = new HeartBeatPacket();
-        packet.timestamp = buffer.getLong();
-        packet.id = buffer.getInt();
-        return packet;
+    public void decode(ByteBuffer buffer) {
+        this.timestamp = buffer.getLong();
+        this.id = buffer.getInt();
     }
 
     public int getId() {

@@ -1,17 +1,15 @@
 package xyz.wireway.frame.transmit;
 
-import xyz.wireway.frame.datasource.DataSourceRegistry;
 import xyz.wireway.frame.Frame;
 import xyz.wireway.frame.FrameFragment;
-import xyz.wireway.frame.datasource.DataSource;
+import xyz.wireway.frame.channel.Channel;
+import xyz.wireway.frame.channel.ChannelRegistry;
 import xyz.wireway.transport.TransportListener;
 import xyz.wireway.util.ComposedBuffer;
 import xyz.wireway.util.ProtocolUtils;
 import xyz.wireway.util.VarInt;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,12 +17,12 @@ public class FramedDataInput implements TransportListener {
 
     private ComposedBuffer composedBuffer = new ComposedBuffer();
 
-    private final DataSourceRegistry dataSourceRegistry;
+    private final ChannelRegistry channelRegistry;
 
-    private Map<Integer, DataSource> dataSourcesByDataId = new ConcurrentHashMap<>();
+    private Map<Integer, IncomingChannelWrapper> channelsById = new ConcurrentHashMap<>();
 
-    public FramedDataInput(DataSourceRegistry dataSourceRegistry) {
-        this.dataSourceRegistry = dataSourceRegistry;
+    public FramedDataInput(ChannelRegistry channelRegistry) {
+        this.channelRegistry = channelRegistry;
     }
 
     @Override
@@ -45,16 +43,12 @@ public class FramedDataInput implements TransportListener {
 
     private void handleFrameFragment(FrameFragment f){
         int dataId = f.getDataId();
-        ByteBuffer data = f.getData();
         if(f.isStart()){
-            // the first bytes of a datasource always has to be the id their class is registered under DataSourceRegistry.
-            // this process should be handled on another layer or reworked to avoid the additional edge cases it introduces.
-            int dataSourceId = VarInt.readVarInt(data);
-            dataSourcesByDataId.put(dataId, dataSourceRegistry.createDataSource(dataSourceId));
+            channelsById.put(dataId, new IncomingChannelWrapper(channelRegistry));
         }
-        DataSource dataSource = dataSourcesByDataId.get(dataId);
-        dataSource.write(f.getData());
-        if(f.isEnd()) dataSource.close();
+        IncomingChannelWrapper channel = channelsById.get(dataId);
+        channel.write(f.getData());
+        if(f.isEnd()) channel.close();
     }
 
 }

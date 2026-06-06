@@ -1,8 +1,8 @@
-package xyz.wireway.frame.datasource;
+package xyz.wireway.frame.channel;
 
 import java.nio.ByteBuffer;
 
-public interface DataSource {
+public interface Channel<C> {
 
     int availableBytes();
 
@@ -14,6 +14,9 @@ public interface DataSource {
 
     void write(ByteBuffer buffer);
 
-    void inject(Provider provider);
+    void inject(C context);
 
+    void setSubId(int subId);
+
+    int getSubId();
 }

@@ -1,7 +1,6 @@
 package xyz.wireway.transport.adapter;
 
 import xyz.wireway.Main;
-import xyz.wireway.service.ConnectionListener;
 import xyz.wireway.transport.ConnectionState;
 import xyz.wireway.transport.Transport;
 import xyz.wireway.transport.TransportListener;
