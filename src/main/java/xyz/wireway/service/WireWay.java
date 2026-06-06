@@ -40,9 +40,6 @@ public class WireWay implements Provider {
         if(p instanceof HeartBeatPacket packet) {
             System.out.println("Heartbeat: " + packet.getId() + " Time: " + packet.getTimestamp());
         }
-        if(p instanceof ZehLeckPacket packet){
-            System.out.println(packet.getMessage());
-        }
     }
 
     @Override
