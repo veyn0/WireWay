@@ -1,5 +1,15 @@
 package xyz.wireway;
 
+import xyz.wireway.protocol.Packet;
+import xyz.wireway.protocol.PacketRegistry;
+import xyz.wireway.protocol.Protocol;
+import xyz.wireway.protocol.packet.HeartBeatPacket;
+import xyz.wireway.service.WireWay;
+import xyz.wireway.service.stream.PacketListener;
+import xyz.wireway.service.stream.PacketStream;
+import xyz.wireway.transport.Transport;
+import xyz.wireway.transport.adapter.SocketTransport;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -14,7 +24,7 @@ public class Main {
         Thread.sleep(1000);
         System.out.println("connecting");
         new Thread(() ->{
-            createTest1();
+            createClient();
         }).start();
 
 
@@ -22,38 +32,51 @@ public class Main {
 
     }
 
-    private static void createTest1(){
-//        Protocol p = new Protocol();
-//        p.register(HeartBeatPacket.class);
-//        PacketRegistry packetRegistry = new PacketRegistry(p);
-//        Transport t = SocketTransport.connect("localhost", 26656);
-//
-//        new WireWay(t, DataSourceRegistry.createDefault(), packetRegistry, 10240, 1024);
+    private static void createClient(){
+        Transport t = SocketTransport.connect("localhost", 26656);
+        Protocol p = new Protocol();
+        p.register(HeartBeatPacket.class);
+        PacketRegistry pr = new PacketRegistry(p);
+
+
+        WireWay wireWay = new WireWay(t, null, pr, 64, 32);
+
+        PacketStream stream = wireWay.createPacketStream(13);
+        PacketStream stream1= wireWay.createPacketStream(14);
+        stream.sendPacket(new HeartBeatPacket());
+
+
     }
 
     private static void startListening(){
-//
-//        Protocol p = new Protocol();
-//        p.register(HeartBeatPacket.class);
-//        PacketRegistry packetRegistry = new PacketRegistry(p);
-//        SocketTransport.listen(26656, transport -> {
-//            System.out.println("connection incoming");
-//            WireWay wireWay = new WireWay(transport, DataSourceRegistry.createDefault(), packetRegistry, 512, 128);
-//            try {
-//                Thread.sleep(2000);
-//                System.out.println("sending heartbeat");
-//                HeartBeatPacket packet = new HeartBeatPacket();
-//                SequentialPacketChannel channel = wireWay.createSequentialPacketChannel();
-//                channel.submitPacket(packet);
-//            }catch (Exception e){
-//                throw new RuntimeException(e);
-//            }
-//        });
+        Protocol p = new Protocol();
+        p.register(HeartBeatPacket.class);
+        PacketRegistry pr = new PacketRegistry(p);
+
+        SocketTransport.listen(
+                26656,
+                transport -> {
+                    WireWay wireWay = new WireWay(transport, null, pr, 64, 32);
+                    PacketStream stream = wireWay.createPacketStream(13);
+                    stream.addListener(createListener(13));
+                    PacketStream stream1 = wireWay.createPacketStream(14);
+                    stream1.addListener(createListener(14));
+
+
+                }
+        );
 
     }
 
 
-
+    private static PacketListener createListener(int id){
+        return new PacketListener() {
+            @Override
+            public void onPacketReceive(Packet p) {
+                System.out.println("Packet received on ID " + id);
+            }
+        };
+    }
 
 
 

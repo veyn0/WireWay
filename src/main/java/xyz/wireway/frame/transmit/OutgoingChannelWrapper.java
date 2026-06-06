@@ -22,6 +22,7 @@ public class OutgoingChannelWrapper {
         this.metaData = ByteBuffer.allocate(VarInt.sizeOf(channelTypeId) + VarInt.sizeOf(subId));
         VarInt.writeVarInt(metaData, channelTypeId);
         VarInt.writeVarInt(metaData, subId);
+        metaData.flip();
     }
 
     public void setChannelId(int channelId) {
@@ -33,7 +34,7 @@ public class OutgoingChannelWrapper {
     }
 
     public byte getFlags(boolean hasSentBefore){
-        return FrameFragment.encodeFlags(hasSentBefore, (channel.isExhausted()&&availableBytes()<=0));
+        return FrameFragment.encodeFlags(!hasSentBefore, (channel.isExhausted()&&availableBytes()<=0));
     }
 
     public Channel<?> getChannel() {

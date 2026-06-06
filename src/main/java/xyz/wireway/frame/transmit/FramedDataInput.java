@@ -2,12 +2,10 @@ package xyz.wireway.frame.transmit;
 
 import xyz.wireway.frame.Frame;
 import xyz.wireway.frame.FrameFragment;
-import xyz.wireway.frame.channel.Channel;
 import xyz.wireway.frame.channel.ChannelRegistry;
 import xyz.wireway.transport.TransportListener;
 import xyz.wireway.util.ComposedBuffer;
 import xyz.wireway.util.ProtocolUtils;
-import xyz.wireway.util.VarInt;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -43,7 +41,9 @@ public class FramedDataInput implements TransportListener {
 
     private void handleFrameFragment(FrameFragment f){
         int dataId = f.getDataId();
+        System.out.println("handleFrame " + dataId);
         if(f.isStart()){
+            System.out.println("isStart " + f.getDataId());
             channelsById.put(dataId, new IncomingChannelWrapper(channelRegistry));
         }
         IncomingChannelWrapper channel = channelsById.get(dataId);

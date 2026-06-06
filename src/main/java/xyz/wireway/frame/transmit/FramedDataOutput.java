@@ -20,7 +20,7 @@ public class FramedDataOutput {
 
     private final ChannelRegistry channelRegistry;
 
-    private static final int estimatedMaxFragmentHeaderSize = 16; // 5 + 1 + 5 + 5 (in case of it being the first fragment currently the channelId has to be sent fully within the first transmitted fragment.)
+    private static final int estimatedMaxFragmentHeaderSize = 11; // 5 + 1 + 5 + 5 (in case of it being the first fragment currently the channelId has to be sent fully within the first transmitted fragment.)
 
     private final int maxFrameFragmentLength;
 
@@ -85,16 +85,6 @@ public class FramedDataOutput {
                     int channelId = outgoingChannelWrapper.getChannelId();
                     int chunkSize = Math.min(outgoingChannelWrapper.availableBytes(), maxSize);
                     ByteBuffer chunk = ByteBuffer.allocateDirect(chunkSize);
-
-                    // the first bytes of the transmition are reserved for the channelId.
-                    // currently the dataSourceId has to be fully in the first fragment.
-                    //TODO: fix bug where a datasource is allways split up over at elast two fragments.
-//                    if(!dataSourceInfo.isStartedSending()){
-//                        int dataSourceId = channelRegistry.getChannelId(channel);
-//                        VarInt.writeVarInt(chunk, dataSourceId);
-//                        chunkSize -= VarInt.sizeOf(dataSourceId);
-//                    }
-
                     boolean sentBefore =  outgoingChannelWrapper.hasSentBefore();
                     outgoingChannelWrapper.read(chunk, chunkSize);
                     byte flags = outgoingChannelWrapper.getFlags(sentBefore);
