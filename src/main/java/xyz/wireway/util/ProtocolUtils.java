@@ -1,6 +1,8 @@
 package xyz.wireway.util;
 
 
+import xyz.wireway.Main;
+
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -38,11 +40,14 @@ public class ProtocolUtils {
     }
 
     public static boolean canRead(ComposedBuffer composedBuffer){
+
+        Main.printByteBufferNoFlip(composedBuffer.peek(composedBuffer.remaining()));
+
         int totalLength = composedBuffer.remaining();
         if(totalLength==0) return false;
         int peekLength = Math.max(totalLength, 5);
         try {
-            int frameLength = VarInt.readVarIntSafe(composedBuffer.peek(peekLength));
+            int frameLength = VarInt.readVarInt(composedBuffer.peek(peekLength));
             return totalLength >= (frameLength + VarInt.sizeOf(frameLength));
         } catch (BufferOverflowException e){
             return false;

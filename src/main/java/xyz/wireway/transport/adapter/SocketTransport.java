@@ -1,5 +1,6 @@
 package xyz.wireway.transport.adapter;
 
+import xyz.wireway.Main;
 import xyz.wireway.service.ConnectionListener;
 import xyz.wireway.transport.ConnectionState;
 import xyz.wireway.transport.Transport;
@@ -29,6 +30,7 @@ public class SocketTransport implements Transport {
 
     @Override
     public void send(ByteBuffer data) {
+        System.out.println("socketTransport sending..");
         try {
             if (data.hasArray()) {
                 socket.getOutputStream().write(
@@ -68,8 +70,9 @@ public class SocketTransport implements Transport {
     }
 
     private void receive(ByteBuffer buffer){
+        Main.printByteBufferNoFlip(buffer.duplicate());
         for(TransportListener l : transportListeners){
-            l.onReceive(buffer);
+            l.onReceive(buffer.duplicate());
         }
     }
 
@@ -100,10 +103,8 @@ public class SocketTransport implements Transport {
     }
 
     public static SocketTransport connect(String host, int port){
-        try (Socket socket = new Socket(host, port)) {
-            return new SocketTransport(socket);
-        } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
+        try {
+            return new SocketTransport(new Socket(host, port));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

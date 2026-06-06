@@ -37,6 +37,7 @@ public class FramedDataOutput {
         this.dataSourceIdAllocator = new IdAllocator();
         this.transport = transport;
         this.dataSourceRegistry = dataSourceRegistry;
+        startSending();
     }
 
     public void addDataSource(DataSource dataSource){
@@ -49,13 +50,30 @@ public class FramedDataOutput {
         dataSourceIdAllocator.release(dataSourceInfo.getId());
     }
 
+    private void startSending(){
+        new Thread(() ->{
+            while (true) {
+                sendFrame();
+                try {
+                    Thread.sleep(100);
+                }catch (Exception e){
+
+                }
+            }
+        }).start();
+    }
+
     public void sendFrame(){
         //TODO: find more efficient way to create final bytebuffer of Frame.
         Frame currentFrame = buildNextFrame();
+        if(currentFrame.getFragments().isEmpty()) return;
         int length= currentFrame.length();
+
+        System.out.println("sending frame length: " + length);
         ByteBuffer data = ByteBuffer.allocateDirect(length);
         currentFrame.write(data);
         data.flip();
+        System.out.println("data remaining: " + data.remaining());
         // TODO: check for transport connectionstate
         transport.send(data);
     }
@@ -64,7 +82,7 @@ public class FramedDataOutput {
         List<FrameFragment> fragments = new ArrayList<>();
         int remainingSize = maxFrameLength;
         boolean progressed = true;
-        while ((progressed && remainingSize > 0 )|| fragments.isEmpty()){
+        while ((progressed && remainingSize > 0 )){
             progressed = false;
             int passSize = dataSources.size();
             for(int i = 0; i < passSize; i++){
@@ -78,6 +96,7 @@ public class FramedDataOutput {
 
                     // the first bytes of the transmition are reserved for the dataSourceId.
                     // currently the dataSourceId has to be fully in the first fragment.
+                    //TODO: fix bug where a datasource is allways split up over at elast two fragments.
                     if(!dataSourceInfo.isStartedSending()){
                         int dataSourceId = dataSourceRegistry.getDataSourceId(dataSource);
                         VarInt.writeVarInt(chunk, dataSourceId);

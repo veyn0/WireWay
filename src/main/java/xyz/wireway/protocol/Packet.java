@@ -10,7 +10,18 @@ public interface Packet {
 
     Packet decode(ByteBuffer buffer);
 
-    ByteBuffer encode(Packet p);
+    ByteBuffer encode();
+
+    static ByteBuffer getData(Packet p, PacketRegistry packetRegistry){
+        ByteBuffer content = p.encode();
+        int packetId = packetRegistry.getPacketId(p);
+        int length = content.remaining() + VarInt.sizeOf(packetId);
+        ByteBuffer result = ByteBuffer.allocateDirect(length + VarInt.sizeOf(length));
+        VarInt.writeVarInt(result, length);
+        VarInt.writeVarInt(result, packetId);
+        result.put(content);
+        return  result.flip();
+    }
 
     static Packet read(ComposedBuffer buffer, PacketRegistry packetRegistry){
         int len = VarInt.readVarInt(buffer.peek(5));

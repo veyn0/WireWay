@@ -14,7 +14,7 @@ public class HandshakePacket implements Packet {
     }
 
     @Override
-    public ByteBuffer encode(Packet p) {
+    public ByteBuffer encode() {
         return null;
     }
 }

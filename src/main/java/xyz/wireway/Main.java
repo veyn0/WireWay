@@ -6,8 +6,13 @@ import xyz.wireway.frame.datasource.DataSourceRegistry;
 import xyz.wireway.frame.datasource.debug.DebugStringDataSource;
 import xyz.wireway.frame.transmit.FramedDataInput;
 import xyz.wireway.frame.transmit.FramedDataOutput;
+import xyz.wireway.protocol.PacketRegistry;
+import xyz.wireway.protocol.Protocol;
+import xyz.wireway.protocol.packet.HeartBeatPacket;
+import xyz.wireway.service.WireWay;
 import xyz.wireway.transport.Transport;
 import xyz.wireway.transport.adapter.LoopbackTransport;
+import xyz.wireway.transport.adapter.SocketTransport;
 import xyz.wireway.transport.listener.DebugtransportListener;
 
 import java.nio.ByteBuffer;
@@ -15,7 +20,52 @@ import java.util.Arrays;
 
 public class Main {
 
-    public static void main(String[] args) {
+
+    public static void main(String[] args) throws Exception{
+        new Thread(() ->{
+            startListening();
+        }).start();
+
+        Thread.sleep(1000);
+        System.out.println("connecting");
+        new Thread(() ->{
+            createTest1();
+        }).start();
+
+
+
+
+    }
+
+    private static void createTest1(){
+        Protocol p = new Protocol();
+        p.register(HeartBeatPacket.class);
+        PacketRegistry packetRegistry = new PacketRegistry(p);
+        Transport t = SocketTransport.connect("localhost", 26656);
+
+        new WireWay(t, DataSourceRegistry.createDefault(), packetRegistry, 10240, 1024);
+    }
+
+    private static void startListening(){
+        Protocol p = new Protocol();
+        p.register(HeartBeatPacket.class);
+        PacketRegistry packetRegistry = new PacketRegistry(p);
+        SocketTransport.listen(26656, transport -> {
+            System.out.println("connection incoming");
+            WireWay wireWay = new WireWay(transport, DataSourceRegistry.createDefault(), packetRegistry, 512, 128);
+            try {
+                Thread.sleep(5000);
+                System.out.println("sending heartbeat");
+                HeartBeatPacket packet = new HeartBeatPacket();
+                wireWay.createSequentialPacketChannel().submitPacket(packet);
+            }catch (Exception e){
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+
+    private void test1(){
         Transport t = LoopbackTransport.connect();
         DataSourceRegistry dataSourceRegistry = new DataSourceRegistry();
 
@@ -40,9 +90,6 @@ public class Main {
         fdOut.addDataSource(text);
 
         fdOut.sendFrame();
-
-
-
     }
 
     public static void printByteBuffer(ByteBuffer data){
