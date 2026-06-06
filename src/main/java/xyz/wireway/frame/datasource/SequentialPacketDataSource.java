@@ -17,7 +17,6 @@ public class SequentialPacketDataSource extends ComposedBufferBase implements Da
 
     public void addPacket(Packet p){
         ByteBuffer buffer = p.encode();
-        System.out.println("remaining buffer size of packet: " + buffer.remaining());
 
 
         composedBuffer.add(Packet.getData(p, provider.getPacketRegistry()));
@@ -26,7 +25,6 @@ public class SequentialPacketDataSource extends ComposedBufferBase implements Da
     @Override
     protected void postWrite() {
         while (ProtocolUtils.canRead(composedBuffer)){
-            System.out.println("composedBuffer length: " + composedBuffer.remaining());
             Packet p = Packet.read(composedBuffer, provider.getPacketRegistry());
             provider.onPacketReceive(p);
         }
@@ -35,5 +33,10 @@ public class SequentialPacketDataSource extends ComposedBufferBase implements Da
     @Override
     protected void postClose() {
 
+    }
+
+    @Override
+    public boolean isExhausted() {
+        return false;
     }
 }

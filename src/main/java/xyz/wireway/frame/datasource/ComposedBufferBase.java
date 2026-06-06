@@ -13,7 +13,6 @@ public abstract class ComposedBufferBase {
     protected ComposedBuffer composedBuffer = new ComposedBuffer();
 
     public void read(ByteBuffer buffer, int length) {
-        System.out.println("reading " + length + " bytes");
         buffer.put(this.composedBuffer.get(length));
         postRead();
     }
@@ -43,7 +42,7 @@ public abstract class ComposedBufferBase {
     protected abstract void postClose();
 
     protected void postRead(){
-        System.out.println("postRead " + availableBytes());
+
     };
 
     protected void postWrite(){

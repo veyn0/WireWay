@@ -39,7 +39,6 @@ public class DebugByteArrayDatasource implements DataSource {
 
     @Override
     public void close() {
-        System.out.println("transmition finished");
         Main.printByteBufferNoFlip(buffer.get());
     }
 

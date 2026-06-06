@@ -40,7 +40,6 @@ public class DebugStringDataSource implements DataSource {
 
     @Override
     public void close() {
-        System.out.println("Transmition Result:");
         Main.printByteBufferNoFlip(buffer.peek(buffer.remaining()));
         System.out.println(StandardCharsets.UTF_8.decode(buffer.get()).toString());
     }

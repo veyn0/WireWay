@@ -30,7 +30,6 @@ public class SocketTransport implements Transport {
 
     @Override
     public void send(ByteBuffer data) {
-        System.out.println("socketTransport sending..");
         try {
             if (data.hasArray()) {
                 socket.getOutputStream().write(
@@ -60,7 +59,7 @@ public class SocketTransport implements Transport {
             } catch (SocketException ignored) {
                 // Socket wurde geschlossen
             } catch (IOException e) {
-                System.err.println("Receive-Fehler: " + e.getMessage());
+                throw new RuntimeException(e);
             } finally {
                 close();
             }

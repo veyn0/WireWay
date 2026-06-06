@@ -10,6 +10,7 @@ import xyz.wireway.protocol.PacketRegistry;
 import xyz.wireway.protocol.Protocol;
 import xyz.wireway.protocol.packet.HeartBeatPacket;
 import xyz.wireway.service.WireWay;
+import xyz.wireway.service.channel.SequentialPacketChannel;
 import xyz.wireway.transport.Transport;
 import xyz.wireway.transport.adapter.LoopbackTransport;
 import xyz.wireway.transport.adapter.SocketTransport;
@@ -47,6 +48,7 @@ public class Main {
     }
 
     private static void startListening(){
+
         Protocol p = new Protocol();
         p.register(HeartBeatPacket.class);
         PacketRegistry packetRegistry = new PacketRegistry(p);
@@ -54,15 +56,24 @@ public class Main {
             System.out.println("connection incoming");
             WireWay wireWay = new WireWay(transport, DataSourceRegistry.createDefault(), packetRegistry, 512, 128);
             try {
-                Thread.sleep(5000);
+                Thread.sleep(2000);
                 System.out.println("sending heartbeat");
                 HeartBeatPacket packet = new HeartBeatPacket();
-                wireWay.createSequentialPacketChannel().submitPacket(packet);
+                SequentialPacketChannel channel = wireWay.createSequentialPacketChannel();
+                channel.submitPacket(packet);
             }catch (Exception e){
                 throw new RuntimeException(e);
             }
         });
+
     }
+
+
+
+
+
+
+
 
 
     private void test1(){
@@ -104,12 +115,12 @@ public class Main {
 
 
     public static void printByteBufferNoFlip(ByteBuffer data){
-
-        ByteBuffer buffer = data.duplicate();
-        System.out.println("[DEBUG] ByteBuffer content:");
-        byte[] bytes = new byte[buffer.remaining()];
-        buffer.get(bytes);
-        System.out.println(Arrays.toString(bytes));
+        return;
+//        ByteBuffer buffer = data.duplicate();
+//        System.out.println("[DEBUG] ByteBuffer content:");
+//        byte[] bytes = new byte[buffer.remaining()];
+//        buffer.get(bytes);
+//        System.out.println(Arrays.toString(bytes));
     }
 
 }

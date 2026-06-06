@@ -69,11 +69,9 @@ public class FramedDataOutput {
         if(currentFrame.getFragments().isEmpty()) return;
         int length= currentFrame.length();
 
-        System.out.println("sending frame length: " + length);
         ByteBuffer data = ByteBuffer.allocateDirect(length);
         currentFrame.write(data);
         data.flip();
-        System.out.println("data remaining: " + data.remaining());
         // TODO: check for transport connectionstate
         transport.send(data);
     }

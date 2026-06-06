@@ -35,7 +35,6 @@ public class FramedDataInput implements TransportListener {
 
     private void handleIncomingFrames(){
         while (ProtocolUtils.canRead( composedBuffer)){
-            System.out.println("reading Frame");
 
             Frame frame = Frame.read(composedBuffer);
             for(FrameFragment fragment : frame.getFragments()){

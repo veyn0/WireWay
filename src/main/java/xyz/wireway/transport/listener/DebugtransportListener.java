@@ -10,11 +10,11 @@ public class DebugtransportListener implements TransportListener {
 
     @Override
     public void onReceive(ByteBuffer data) {
-        ByteBuffer buffer = data.duplicate();
-        System.out.println("[DEBUG] TransportListener received:");
-        byte[] bytes = new byte[buffer.remaining()];
-        buffer.get(bytes);
-        System.out.println(Arrays.toString(bytes));
+//        ByteBuffer buffer = data.duplicate();
+//        System.out.println("[DEBUG] TransportListener received:");
+//        byte[] bytes = new byte[buffer.remaining()];
+//        buffer.get(bytes);
+//        System.out.println(Arrays.toString(bytes));
     }
 
 }
