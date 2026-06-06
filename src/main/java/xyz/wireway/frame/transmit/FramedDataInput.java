@@ -41,9 +41,7 @@ public class FramedDataInput implements TransportListener {
 
     private void handleFrameFragment(FrameFragment f){
         int dataId = f.getDataId();
-        System.out.println("handleFrame " + dataId);
         if(f.isStart()){
-            System.out.println("isStart " + f.getDataId());
             channelsById.put(dataId, new IncomingChannelWrapper(channelRegistry));
         }
         IncomingChannelWrapper channel = channelsById.get(dataId);

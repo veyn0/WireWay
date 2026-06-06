@@ -7,9 +7,9 @@ import xyz.wireway.frame.transmit.FramedDataInput;
 import xyz.wireway.frame.transmit.FramedDataOutput;
 import xyz.wireway.frame.transmit.OutgoingChannelWrapper;
 import xyz.wireway.protocol.PacketRegistry;
-import xyz.wireway.service.stream.PacketChannelContext;
-import xyz.wireway.service.stream.PacketListener;
-import xyz.wireway.service.stream.PacketStream;
+import xyz.wireway.service.packetstream.PacketChannelContext;
+import xyz.wireway.service.packetstream.PacketListener;
+import xyz.wireway.service.packetstream.PacketStream;
 import xyz.wireway.transport.Transport;
 import xyz.wireway.transport.listener.DebugtransportListener;
 
@@ -30,57 +30,38 @@ public class WireWay {
 
     private ChannelRegistry channelRegistry;
 
-    private Map<Integer, SequentialPacketChannel> outgoingPacketStream = new ConcurrentHashMap<>();
+    private PacketChannelController packetChannelController;
 
-    private Map<Integer, List<PacketListener>> incomingPacketListener = new ConcurrentHashMap<>();
+    private PacketChannelContext packetChannelContext;
 
-    public WireWay(Transport transport, ChannelRegistry channelRegistry, PacketRegistry packetRegistry, int maxFrameLen, int maxFragmentLen){
+    public WireWay(Transport transport, PacketRegistry packetRegistry, int maxFrameLen, int maxFragmentLen){
         this.packetRegistry = packetRegistry;
         this.transport = transport;
-        channelRegistry = createChannelRegistry();
-        this.channelRegistry = channelRegistry;
+
+        ChannelSet channelSet = new ChannelSet();
+        packetChannelContext =  new PacketChannelContext(packetRegistry, this::onPacketReceive);
+        channelSet.register(SequentialPacketChannel.class,packetChannelContext);
+
+        this.channelRegistry = new ChannelRegistry(channelSet);
         this.framedDataInput = new FramedDataInput(channelRegistry);
         this.transport.addListener(framedDataInput);
         this.transport.addListener(new DebugtransportListener());
         this.framedDataOutput = new FramedDataOutput(this.transport, this.channelRegistry, maxFragmentLen, maxFrameLen);
+
+        setupPacketChannelController();
+
     }
 
-    private ChannelRegistry createChannelRegistry(){
-        ChannelSet channelSet = new ChannelSet();
-        channelSet.register(SequentialPacketChannel.class, createChannelContext());
-        return new ChannelRegistry(channelSet);
+    private void onPacketReceive(PacketInfo packetInfo){
+        packetChannelController.onPacketReceive(packetInfo);
     }
 
-    private PacketChannelContext createChannelContext(){
-        return new PacketChannelContext(
-                packetRegistry,
-                (packet, id) ->{
-                    if( incomingPacketListener.containsKey(id)){
-                        for(PacketListener listener : incomingPacketListener.get(id)){
-                            listener.onPacketReceive(packet);
-                        }
-                    }
-                }
-        );
+    private void setupPacketChannelController(){
+        this.packetChannelController = new PacketChannelController(packetRegistry, framedDataOutput, channelRegistry, packetChannelContext );
     }
 
-    public PacketStream createPacketStream(int id){
-        SequentialPacketChannel channel = new SequentialPacketChannel();
-        channel.inject(createChannelContext());
-        channel.setSubId(id);
-
-        outgoingPacketStream.put(id, channel);
-        framedDataOutput.addChannel(new OutgoingChannelWrapper(channel, channelRegistry));
-
-        return  new PacketStream(
-                channel::addPacket,
-                packetListener -> {
-                    if(!incomingPacketListener.containsKey(id)){
-                        incomingPacketListener.put(id, new ArrayList<>());
-                    }
-                    incomingPacketListener.get(id).add(packetListener);
-                }
-        );
+    public PacketChannel createPacketChannel(int id){
+        return packetChannelController.createPacketChannel(id);
     }
 
 }

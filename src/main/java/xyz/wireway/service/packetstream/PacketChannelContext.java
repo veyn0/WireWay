@@ -1,16 +1,18 @@
-package xyz.wireway.service.stream;
+package xyz.wireway.service.packetstream;
 
 import xyz.wireway.protocol.Packet;
 import xyz.wireway.protocol.PacketRegistry;
+import xyz.wireway.service.PacketInfo;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class PacketChannelContext {
 
     private PacketRegistry packetRegistry;
-    private BiConsumer<Packet, Integer> onPacketReceivedAtSubChannel;
+    private Consumer<PacketInfo> onPacketReceivedAtSubChannel;
 
-    public PacketChannelContext(PacketRegistry packetRegistry, BiConsumer<Packet, Integer> onPacketReceivedAtSubChannel) {
+    public PacketChannelContext(PacketRegistry packetRegistry, Consumer<PacketInfo> onPacketReceivedAtSubChannel) {
         this.packetRegistry = packetRegistry;
         this.onPacketReceivedAtSubChannel = onPacketReceivedAtSubChannel;
     }
@@ -19,7 +21,7 @@ public class PacketChannelContext {
         return packetRegistry;
     }
 
-    public BiConsumer<Packet, Integer> getOnPacketReceivedAtSubChannel() {
+    public Consumer<PacketInfo> getOnPacketReceivedAtSubChannel() {
         return onPacketReceivedAtSubChannel;
     }
 }

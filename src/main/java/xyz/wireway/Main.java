@@ -4,9 +4,10 @@ import xyz.wireway.protocol.Packet;
 import xyz.wireway.protocol.PacketRegistry;
 import xyz.wireway.protocol.Protocol;
 import xyz.wireway.protocol.packet.HeartBeatPacket;
+import xyz.wireway.service.PacketChannel;
 import xyz.wireway.service.WireWay;
-import xyz.wireway.service.stream.PacketListener;
-import xyz.wireway.service.stream.PacketStream;
+import xyz.wireway.service.packetstream.PacketListener;
+import xyz.wireway.service.packetstream.PacketStream;
 import xyz.wireway.transport.Transport;
 import xyz.wireway.transport.adapter.SocketTransport;
 
@@ -24,7 +25,11 @@ public class Main {
         Thread.sleep(1000);
         System.out.println("connecting");
         new Thread(() ->{
-            createClient();
+            try {
+                createClient();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }).start();
 
 
@@ -32,19 +37,20 @@ public class Main {
 
     }
 
-    private static void createClient(){
+    private static void createClient() throws Exception{
         Transport t = SocketTransport.connect("localhost", 26656);
         Protocol p = new Protocol();
         p.register(HeartBeatPacket.class);
         PacketRegistry pr = new PacketRegistry(p);
 
 
-        WireWay wireWay = new WireWay(t, null, pr, 64, 32);
 
-        PacketStream stream = wireWay.createPacketStream(13);
-        PacketStream stream1= wireWay.createPacketStream(14);
-        stream.sendPacket(new HeartBeatPacket());
+        WireWay wireWay = new WireWay(t, pr, 64, 32);
 
+        PacketChannel pc = wireWay.createPacketChannel(1);
+        pc.sendPacket(new HeartBeatPacket(), packet -> {
+            System.out.println("test");
+        });
 
     }
 
@@ -56,12 +62,10 @@ public class Main {
         SocketTransport.listen(
                 26656,
                 transport -> {
-                    WireWay wireWay = new WireWay(transport, null, pr, 64, 32);
-                    PacketStream stream = wireWay.createPacketStream(13);
-                    stream.addListener(createListener(13));
-                    PacketStream stream1 = wireWay.createPacketStream(14);
-                    stream1.addListener(createListener(14));
+                    WireWay wireWay = new WireWay(transport, pr, 64, 32);
 
+                    PacketChannel pc = wireWay.createPacketChannel(1);
+                    pc.setListener(createListener(1));
 
                 }
         );
@@ -72,8 +76,9 @@ public class Main {
     private static PacketListener createListener(int id){
         return new PacketListener() {
             @Override
-            public void onPacketReceive(Packet p) {
+            public Packet onPacketReceive(Packet p) {
                 System.out.println("Packet received on ID " + id);
+                return new HeartBeatPacket();
             }
         };
     }

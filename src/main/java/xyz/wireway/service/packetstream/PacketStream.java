@@ -1,4 +1,4 @@
-package xyz.wireway.service.stream;
+package xyz.wireway.service.packetstream;
 
 import xyz.wireway.protocol.Packet;
 
