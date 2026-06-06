@@ -2,21 +2,24 @@ package xyz.wireway.service;
 
 import xyz.wireway.frame.channel.ChannelRegistry;
 import xyz.wireway.frame.channel.ChannelSet;
-import xyz.wireway.frame.channel.SequentialPacketChannel;
+import xyz.wireway.frame.channel.impl.AsyncPacketChannel;
+import xyz.wireway.frame.channel.impl.SequentialPacketChannel;
 import xyz.wireway.frame.transmit.FramedDataInput;
 import xyz.wireway.frame.transmit.FramedDataOutput;
 import xyz.wireway.frame.transmit.OutgoingChannelWrapper;
+import xyz.wireway.protocol.Packet;
 import xyz.wireway.protocol.PacketRegistry;
-import xyz.wireway.service.packetstream.PacketChannelContext;
-import xyz.wireway.service.packetstream.PacketListener;
+import xyz.wireway.service.asyncpacketstream.AsyncPacketChannelContext;
+import xyz.wireway.service.asyncpacketstream.AsyncPacketListener;
 import xyz.wireway.service.packetstream.PacketStream;
+import xyz.wireway.service.packetstream.PacketChannelContext;
+import xyz.wireway.service.packetstream.PacketStreamController;
+import xyz.wireway.service.packetstream.PacketInfo;
 import xyz.wireway.transport.Transport;
 import xyz.wireway.transport.listener.DebugtransportListener;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class WireWay {
 
@@ -30,17 +33,22 @@ public class WireWay {
 
     private ChannelRegistry channelRegistry;
 
-    private PacketChannelController packetChannelController;
+    private PacketStreamController packetStreamController;
 
     private PacketChannelContext packetChannelContext;
 
-    public WireWay(Transport transport, PacketRegistry packetRegistry, int maxFrameLen, int maxFragmentLen){
+    private AsyncPacketChannelContext asyncPacketChannelContext;
+
+    private List<AsyncPacketListener> asyncPacketListeners = new ArrayList<>();
+
+    public WireWay(Transport transport, PacketRegistry packetRegistry, ChannelSet channelSet,  int maxFrameLen, int maxFragmentLen){
         this.packetRegistry = packetRegistry;
         this.transport = transport;
 
-        ChannelSet channelSet = new ChannelSet();
-        packetChannelContext =  new PacketChannelContext(packetRegistry, this::onPacketReceive);
+        packetChannelContext =  new PacketChannelContext(packetRegistry, this::onPacketReceiveOnChannel);
+        asyncPacketChannelContext = new AsyncPacketChannelContext(packetRegistry, this::onPacketReceiveAsync);
         channelSet.register(SequentialPacketChannel.class,packetChannelContext);
+        channelSet.register(AsyncPacketChannel.class, asyncPacketChannelContext);
 
         this.channelRegistry = new ChannelRegistry(channelSet);
         this.framedDataInput = new FramedDataInput(channelRegistry);
@@ -52,16 +60,33 @@ public class WireWay {
 
     }
 
-    private void onPacketReceive(PacketInfo packetInfo){
-        packetChannelController.onPacketReceive(packetInfo);
+    private void onPacketReceiveOnChannel(PacketInfo packetInfo){
+        packetStreamController.onPacketReceive(packetInfo);
+    }
+
+    private void onPacketReceiveAsync(Packet p){
+        for(AsyncPacketListener listener : asyncPacketListeners){
+            listener.onPacketReceive(p);
+        }
     }
 
     private void setupPacketChannelController(){
-        this.packetChannelController = new PacketChannelController(packetRegistry, framedDataOutput, channelRegistry, packetChannelContext );
+        this.packetStreamController = new PacketStreamController(packetRegistry, framedDataOutput, channelRegistry, packetChannelContext );
     }
 
-    public PacketChannel createPacketChannel(int id){
-        return packetChannelController.createPacketChannel(id);
+    public PacketStream createPacketChannel(int id){
+        return packetStreamController.createPacketChannel(id);
+    }
+
+    public void addAsyncPacketChannelListener(AsyncPacketListener listener){
+        asyncPacketListeners.add(listener);
+    }
+
+    public void sendPacketAsync(Packet packet){
+        AsyncPacketChannel channel = new AsyncPacketChannel(packet, packetRegistry);
+        channel.setSubId(0);
+        channel.inject(asyncPacketChannelContext);
+        framedDataOutput.addChannel(new OutgoingChannelWrapper(channel, channelRegistry));
     }
 
 }

@@ -1,10 +1,7 @@
 package xyz.wireway.service.packetstream;
 
-import xyz.wireway.protocol.Packet;
 import xyz.wireway.protocol.PacketRegistry;
-import xyz.wireway.service.PacketInfo;
 
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class PacketChannelContext {
@@ -24,4 +21,5 @@ public class PacketChannelContext {
     public Consumer<PacketInfo> getOnPacketReceivedAtSubChannel() {
         return onPacketReceivedAtSubChannel;
     }
+
 }

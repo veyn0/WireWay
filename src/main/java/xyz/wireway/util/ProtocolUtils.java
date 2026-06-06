@@ -41,8 +41,6 @@ public class ProtocolUtils {
 
     public static boolean canRead(ComposedBuffer composedBuffer){
 
-        Main.printByteBufferNoFlip(composedBuffer.peek(composedBuffer.remaining()));
-
         int totalLength = composedBuffer.remaining();
         if(totalLength==0) return false;
         int peekLength = Math.max(totalLength, 5);

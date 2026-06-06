@@ -1,23 +1,18 @@
-package xyz.wireway.service;
+package xyz.wireway.service.packetstream;
 
 import xyz.wireway.frame.channel.ChannelRegistry;
-import xyz.wireway.frame.channel.SequentialPacketChannel;
+import xyz.wireway.frame.channel.impl.SequentialPacketChannel;
 import xyz.wireway.frame.transmit.FramedDataOutput;
 import xyz.wireway.frame.transmit.OutgoingChannelWrapper;
 import xyz.wireway.protocol.Packet;
 import xyz.wireway.protocol.PacketRegistry;
-import xyz.wireway.service.packetstream.PacketChannelContext;
-import xyz.wireway.service.packetstream.PacketListener;
 import xyz.wireway.util.IdAllocator;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
-public class PacketChannelController {
+public class PacketStreamController {
 
     private final Map<Integer, PacketListener> listenerBySubId = new ConcurrentHashMap<>();
 
@@ -35,7 +30,7 @@ public class PacketChannelController {
 
     private final PacketChannelContext packetChannelContext;
 
-    public PacketChannelController(PacketRegistry packetRegistry, FramedDataOutput framedDataOutput, ChannelRegistry channelRegistry, PacketChannelContext packetChannelContext) {
+    public PacketStreamController(PacketRegistry packetRegistry, FramedDataOutput framedDataOutput, ChannelRegistry channelRegistry, PacketChannelContext packetChannelContext) {
         this.framedDataOutput = framedDataOutput;
         this.packetRegistry = packetRegistry;
         this.channelRegistry = channelRegistry;
@@ -60,7 +55,7 @@ public class PacketChannelController {
     }
 
 
-    public PacketChannel createPacketChannel(int id){
+    public PacketStream createPacketChannel(int id){
         SequentialPacketChannel channel = new SequentialPacketChannel();
         channel.inject(packetChannelContext);
         channel.setSubId(id);
@@ -69,7 +64,7 @@ public class PacketChannelController {
 
         framedDataOutput.addChannel(new OutgoingChannelWrapper(channel, channelRegistry));
 
-        return new PacketChannel(
+        return new PacketStream(
                 (packet, onSendPacket) ->{
                     if(onSendPacket==null){
                         channel.addPacket(packet, true, 0);

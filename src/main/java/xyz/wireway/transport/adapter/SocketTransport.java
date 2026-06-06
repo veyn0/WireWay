@@ -68,7 +68,7 @@ public class SocketTransport implements Transport {
     }
 
     private void receive(ByteBuffer buffer){
-        Main.printByteBufferNoFlip(buffer.duplicate());
+        //Main.printByteBufferNoFlip(buffer.duplicate());
         for(TransportListener l : transportListeners){
             l.onReceive(buffer.duplicate());
         }

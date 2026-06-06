@@ -2,24 +2,25 @@ package xyz.wireway.service.packetstream;
 
 import xyz.wireway.protocol.Packet;
 
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class PacketStream {
 
-    private Consumer<Packet> onPacketSend;
-    private Consumer<PacketListener> onListenerAdded;
+    private final BiConsumer<Packet, Consumer<Packet>> onSendPacket;
+    private final Consumer<PacketListener> onSetListener;
 
-    public PacketStream(Consumer<Packet> onPacketSend, Consumer<PacketListener> onListenerAdded) {
-        this.onPacketSend = onPacketSend;
-        this.onListenerAdded = onListenerAdded;
+    public PacketStream(BiConsumer<Packet, Consumer<Packet>> onSendPacket, Consumer<PacketListener> onSetListener) {
+        this.onSendPacket = onSendPacket;
+        this.onSetListener = onSetListener;
     }
 
-    public void sendPacket(Packet packet){
-        this.onPacketSend.accept(packet);
+    public void sendPacket(Packet packet, Consumer<Packet> onResponse){
+        onSendPacket.accept(packet, onResponse);
     }
 
-    public void addListener(PacketListener listener){
-        onListenerAdded.accept(listener);
+    public void setListener(PacketListener listener){
+        onSetListener.accept(listener);
     }
 
 }

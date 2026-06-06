@@ -1,7 +1,10 @@
-package xyz.wireway.frame.channel;
+package xyz.wireway.frame.channel.impl;
 
+import xyz.wireway.frame.channel.Channel;
+import xyz.wireway.frame.channel.ChannelId;
+import xyz.wireway.frame.channel.ComposedBufferBase;
 import xyz.wireway.protocol.Packet;
-import xyz.wireway.service.PacketInfo;
+import xyz.wireway.service.packetstream.PacketInfo;
 import xyz.wireway.service.packetstream.PacketChannelContext;
 import xyz.wireway.util.ComposedBuffer;
 import xyz.wireway.util.VarInt;
@@ -12,8 +15,6 @@ import java.nio.ByteBuffer;
 public class SequentialPacketChannel extends ComposedBufferBase implements Channel<PacketChannelContext> {
 
     private PacketChannelContext context;
-
-    private int subId;
 
     public SequentialPacketChannel() {
     }
@@ -69,16 +70,6 @@ public class SequentialPacketChannel extends ComposedBufferBase implements Chann
     @Override
     public void inject(PacketChannelContext context) {
         this.context = context;
-    }
-
-    @Override
-    public void setSubId(int subId) {
-        this.subId = subId;
-    }
-
-    @Override
-    public int getSubId() {
-        return subId;
     }
 
 
