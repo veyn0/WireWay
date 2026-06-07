@@ -12,7 +12,7 @@ public class Protocol {
     public void register(Class<? extends Packet> packet){
         PacketId id = packet.getAnnotation(PacketId.class);
         if(id == null) throw new IllegalArgumentException("Packet class must annotate @PacketId");
-        long idHash = ProtocolUtils.packetIdHash(id.packetId());
+        long idHash = ProtocolUtils.packetIdHash(id.value());
         namedPacketRegistry.put(idHash, packet);
     }
 

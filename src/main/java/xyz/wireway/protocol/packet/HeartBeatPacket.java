@@ -5,7 +5,7 @@ import xyz.wireway.protocol.PacketId;
 
 import java.nio.ByteBuffer;
 
-@PacketId(packetId = "xyz.wireway.system.monitor.heartbeat")
+@PacketId("xyz.wireway.system.monitor.heartbeat")
 public class HeartBeatPacket implements Packet {
 
     private static int idCount = 0;
@@ -21,10 +21,10 @@ public class HeartBeatPacket implements Packet {
 
     @Override
     public ByteBuffer encode() {
-        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES + Integer.BYTES); // 12 Bytes
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES + Integer.BYTES);
         buffer.putLong(timestamp);
         buffer.putInt(id);
-        buffer.flip(); // position → 0, limit → 12 (bereit zum Lesen)
+        buffer.flip();
         return buffer;
     }
 
