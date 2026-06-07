@@ -123,4 +123,11 @@ public class PacketBuffer {
         buf.flip();
         return buf;
     }
+
+    public <T extends BufferSerializable> PacketBuffer writeList(List<T> list) {
+        writeInt(list.size());
+        for (T item : list) item.write(this);
+        return this;
+    }
+
 }
