@@ -3,6 +3,10 @@
 Findings from a read of `0.1-ALPHA` (commit `e13fa6a`). Items marked **verified**
 were reproduced against the compiled tree; the rest are from inspection.
 
+> **Status:** all findings below were addressed by the transmission-layer
+> refactoring described in `REFACTOR-PLAN.md`. File/line references point at
+> the old layout as of commit `e13fa6a`.
+
 ---
 
 ## Critical — breaks normal operation

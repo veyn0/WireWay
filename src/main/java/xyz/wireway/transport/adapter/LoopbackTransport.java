@@ -5,35 +5,38 @@ import xyz.wireway.transport.Transport;
 import xyz.wireway.transport.TransportListener;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
+/** Test transport that echoes every send back to its own listeners. */
 public class LoopbackTransport implements Transport {
 
-    private List<TransportListener> transportListeners = new ArrayList<>();
+    private final List<TransportListener> listeners = new CopyOnWriteArrayList<>();
+    private volatile ConnectionState connectionState = ConnectionState.CONNECTED;
 
-    private ConnectionState connectionState;
-
-    public static LoopbackTransport connect(){
+    public static LoopbackTransport connect() {
         return new LoopbackTransport();
     }
 
-    private LoopbackTransport(){
-        connectionState = ConnectionState.CONNECTED;
-    }
+    private LoopbackTransport() {}
 
     @Override
     public void send(ByteBuffer data) {
-        if(connectionState==ConnectionState.CLOSED) throw new RuntimeException("Cannot send to already closed TransportChannel");
-        for(TransportListener l : transportListeners){
-            l.onReceive(data.duplicate());
+        if (connectionState == ConnectionState.CLOSED) {
+            throw new IllegalStateException("transport is closed");
+        }
+        for (TransportListener listener : listeners) {
+            listener.onReceive(data.duplicate());
         }
     }
 
     @Override
     public void addListener(TransportListener listener) {
-        transportListeners.add(listener);
+        listeners.add(listener);
     }
+
+    @Override
+    public void start() {}
 
     @Override
     public ConnectionState getConnectionState() {
@@ -42,8 +45,10 @@ public class LoopbackTransport implements Transport {
 
     @Override
     public void close() {
-        this.connectionState = ConnectionState.CLOSED;
+        if (connectionState == ConnectionState.CLOSED) return;
+        connectionState = ConnectionState.CLOSED;
+        for (TransportListener listener : listeners) {
+            listener.onClosed();
+        }
     }
-
-
 }

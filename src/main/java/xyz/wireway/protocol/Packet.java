@@ -1,9 +1,9 @@
 package xyz.wireway.protocol;
 
 import xyz.wireway.util.ComposedBuffer;
-import xyz.wireway.util.VarInt;
+import xyz.wireway.wire.LengthPrefixed;
+import xyz.wireway.wire.VarInt;
 
-import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
 public interface Packet {
@@ -12,29 +12,24 @@ public interface Packet {
 
     ByteBuffer encode();
 
-    static ByteBuffer getData(Packet p, PacketRegistry packetRegistry){
-        ByteBuffer content = p.encode();
-        int packetId = packetRegistry.getPacketId(p);
-        int length = content.remaining() + VarInt.sizeOf(packetId);
-        ByteBuffer result = ByteBuffer.allocateDirect(length + VarInt.sizeOf(length));
-        VarInt.writeVarInt(result, length);
-        VarInt.writeVarInt(result, packetId);
-        result.put(content);
-        return  result.flip();
+    /** Encodes one record: {@code [length : VarInt][packetId : VarInt][body]}. */
+    static ByteBuffer encodeRecord(Packet packet, PacketRegistry registry) {
+        ByteBuffer body = packet.encode();
+        int packetId = registry.getPacketId(packet);
+        int payloadLength = VarInt.sizeOf(packetId) + body.remaining();
+        ByteBuffer record = ByteBuffer.allocate(LengthPrefixed.recordSize(payloadLength));
+        VarInt.writeVarInt(record, payloadLength);
+        VarInt.writeVarInt(record, packetId);
+        record.put(body);
+        return record.flip();
     }
 
-    static Packet read(ComposedBuffer buffer, PacketRegistry packetRegistry){
-        int len = VarInt.readVarInt(buffer.peek(5));
-        return read(buffer.get(len + VarInt.sizeOf(len)), packetRegistry);
+    /** Consumes one complete record. Call only after {@link LengthPrefixed#hasRecord}. */
+    static Packet readRecord(ComposedBuffer buffer, PacketRegistry registry) {
+        ByteBuffer payload = LengthPrefixed.takeRecord(buffer);
+        int packetId = VarInt.readVarInt(payload);
+        Packet packet = registry.createPacket(packetId);
+        packet.decode(payload);
+        return packet;
     }
-
-    static Packet read(ByteBuffer buffer , PacketRegistry packetRegistry){
-        int length = VarInt.readVarInt(buffer);
-        if(buffer.remaining()<length) throw new BufferUnderflowException();
-        int packetId = VarInt.readVarInt(buffer);
-        Packet p = packetRegistry.createPacket(packetId);
-        p.decode(buffer);
-        return p;
-    }
-
 }

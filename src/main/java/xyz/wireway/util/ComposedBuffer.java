@@ -2,6 +2,10 @@ package xyz.wireway.util;
 
 import java.nio.ByteBuffer;
 
+/**
+ * Growable FIFO byte buffer. Not thread-safe. Views returned by {@link #peek} and
+ * {@link #get} alias the internal array and are only valid until the next {@link #add}.
+ */
 public final class ComposedBuffer {
 
     private byte[] data;
