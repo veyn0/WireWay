@@ -4,19 +4,19 @@ import xyz.wireway.protocol.Packet;
 import xyz.wireway.protocol.PacketId;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @PacketId("xyz.wireway.system.monitor.heartbeat")
 public class HeartBeatPacket implements Packet {
 
-    private static int idCount = 0;
+    private static final AtomicInteger ID_COUNT = new AtomicInteger();
 
     private long timestamp;
     private int id;
 
-    public HeartBeatPacket(){
+    public HeartBeatPacket() {
         timestamp = System.currentTimeMillis();
-        id = idCount;
-        idCount++;
+        id = ID_COUNT.getAndIncrement();
     }
 
     @Override
@@ -24,8 +24,7 @@ public class HeartBeatPacket implements Packet {
         ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES + Integer.BYTES);
         buffer.putLong(timestamp);
         buffer.putInt(id);
-        buffer.flip();
-        return buffer;
+        return buffer.flip();
     }
 
     @Override
@@ -41,5 +40,4 @@ public class HeartBeatPacket implements Packet {
     public long getTimestamp() {
         return timestamp;
     }
-
 }

@@ -4,6 +4,9 @@ import java.nio.ByteBuffer;
 
 public interface TransportListener {
 
-    public void onReceive(ByteBuffer data);
+    void onReceive(ByteBuffer data);
 
+    default void onError(Throwable cause) {}
+
+    default void onClosed() {}
 }
